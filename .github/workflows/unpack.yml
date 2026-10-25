@@ -1,0 +1,21 @@
+name: unpack-site
+on:
+  push:
+    branches: [main]
+    paths: ['pa.zip']
+permissions:
+  contents: write
+jobs:
+  unpack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unpack zips with folders
+        run: |
+          git ls-tree HEAD | awk '$2=="blob"{print $4}' | grep -v '\.zip$' | while read f; do git rm -q -f -- "$f"; done
+          for z in pa.zip pm1.zip pm2.zip; do if [ -f "$z" ]; then unzip -o "$z"; git rm -q -f "$z"; fi; done
+          git add -A
+          git config user.name "github-actions"
+          git config user.email "actions@users.noreply.github.com"
+          git commit -m "unpack game folders"
+          git push
